@@ -29,8 +29,8 @@
         "path": "img/screenshot-ajax-options.png"
       }
     ],
-    "version": "%VERSION%",
-    "updated": "%TODAY%"
+    "version": "0.0.6-dev",
+    "updated": "2019-02-07"
   },
   "dependencies": {
     "grafanaVersion": "3.x.x",

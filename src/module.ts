@@ -47,6 +47,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
 
   params_fn?: Function;
   header_fn?: Function;
+  data_fn?: Function;
 
   isIframe: boolean = false;
   objectURL: any = null; // Used for images
@@ -88,6 +89,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
           ' since:ctrl.lastRequestTime\n' +
           '}',
         header_js: '{}',
+        data_js: '{}',
         responseType: 'text',
         withCredentials: false,
         skipSameURL: true,
@@ -108,6 +110,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
         mode: RenderMode.json,
         url: 'https://httpbin.org/anything?templateInURL=$__interval',
         header_js: "{\n  Accept: 'text/plain'\n}",
+        data_js: '{}',
         showTime: true,
       },
     },
@@ -122,6 +125,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
           '<h5>Origin: {{ response.origin }}</h5>\n\n<pre>{{ response | json }}</pre>',
         url: 'https://httpbin.org/anything?templateInURL=$__interval',
         header_js: "{\n  Accept: 'text/plain'\n}",
+        data_js: '{}',
         showTime: true,
       },
     },
@@ -145,6 +149,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
         url: 'https://httpbin.org/image',
         params_js: '{}',
         header_js: "{\n  Accept: 'image/jpeg'\n}",
+        data_js: '{}',
         responseType: 'blob',
         showTime: true,
         showTimeValue: 'recieve',
@@ -182,6 +187,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
           "   Authorization: 'Basic ' + btoa('user' + ':' + 'pass')\n" +
           "// Authorization: 'Basic dXNlcjpwYXNz'\n" +
           '}',
+        data_js: '{}',
       },
     },
     {
@@ -192,6 +198,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
         withCredentials: true,
         params_js: '{}',
         header_js: '{\n' + " Authorization: 'Basic ...bad..'\n" + '}',
+        data_js: '{}',
       },
     },
   ];
@@ -315,6 +322,13 @@ class AjaxCtrl extends MetricsPanelCtrl {
     return null;
   }
 
+  getData(scopedVars?: any) {
+    if (this.data_fn) {
+      return this.data_fn(this);
+    }
+    return null;
+  }
+
   _getURL(scopedVars?: any) {
     let url = this.templateSrv.replace(this.panel.url, scopedVars);
     const params = this.getCurrentParams();
@@ -399,6 +413,7 @@ class AjaxCtrl extends MetricsPanelCtrl {
         url: url,
         params: params,
         headers: this.getHeaders(),
+        data: this.getData(),
         cache: false,
         withCredentials: this.panel.withCredentials,
       };
@@ -547,6 +562,16 @@ class AjaxCtrl extends MetricsPanelCtrl {
       } catch (ex) {
         console.warn('error parsing header_js', this.panel.header_js, ex);
         this.header_fn = undefined;
+        this.fn_error = ex;
+      }
+    }
+
+    if (this.panel.data_js) {
+      try {
+        this.data_fn = new Function('ctrl', 'return ' + this.panel.data_js);
+      } catch (ex) {
+        console.warn('error parsing data_js', this.panel.data_js, ex);
+        this.data_fn = undefined;
         this.fn_error = ex;
       }
     }
